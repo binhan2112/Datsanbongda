@@ -2,7 +2,7 @@
 require_once '../config/db.php';
 require_once '../includes/auth_helper.php';
 
-require_login('admin');
+require_login('owner');
 $msg = '';
 
 // Hàm tạo slug đơn giản
@@ -41,8 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             try {
                 $stmt = $pdo->prepare("
                     INSERT INTO events 
-                    (field_id, organizer_id, title, slug, description, event_type, start_datetime, end_datetime, max_teams, entry_fee, prize_pool, status, approval_status) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'upcoming', 'approved')
+                    (field_id, organizer_id, title, slug, description, event_type, start_datetime, end_datetime, max_teams, entry_fee, prize_pool, status) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'upcoming')
                 ");
                 $stmt->execute([
                     $field_id,
@@ -74,38 +74,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $event_id = intval($_POST['event_id']);
         try {
             // Xóa sự kiện (xóa liên đới đăng ký tham gia do ON DELETE CASCADE)
-            $stmt = $pdo->prepare("DELETE FROM events WHERE id = ?");
-            $stmt->execute([$event_id]);
-            $msg = "Đã xóa sự kiện thành công!";
+            // Chủ sân chỉ được xóa khi pending hoặc rejected
+            $stmt = $pdo->prepare("DELETE FROM events WHERE id = ? AND organizer_id = ? AND approval_status != 'approved'");
+            $stmt->execute([$event_id, $_SESSION['user_id']]);
+            if ($stmt->rowCount() > 0) {
+                $msg = "Đã xóa sự kiện thành công!";
+            } else {
+                $msg = "<span style='color:#dc2626;'>Lỗi: Không thể xóa sự kiện này (có thể đã được duyệt).</span>";
+            }
         } catch (PDOException $e) {
             $msg = "<span style='color:#dc2626;'>Lỗi: Không thể xóa sự kiện này.</span>";
         }
-    } elseif ($_POST['action'] === 'approve') {
-        $event_id = intval($_POST['event_id']);
-        $stmt = $pdo->prepare("UPDATE events SET approval_status = 'approved' WHERE id = ?");
-        $stmt->execute([$event_id]);
-        $msg = "Đã duyệt sự kiện thành công!";
-    } elseif ($_POST['action'] === 'reject') {
-        $event_id = intval($_POST['event_id']);
-        $stmt = $pdo->prepare("UPDATE events SET approval_status = 'rejected' WHERE id = ?");
-        $stmt->execute([$event_id]);
-        $msg = "Đã từ chối sự kiện!";
     }
 }
 
-// Lấy danh sách sân hoạt động để làm dropdown
-$fields_stmt = $pdo->query("SELECT id, name FROM fields WHERE status = 'active' ORDER BY name");
+// Lấy danh sách sân hoạt động của owner để làm dropdown
+$fields_stmt = $pdo->prepare("SELECT id, name FROM fields WHERE status = 'active' AND owner_id = ? ORDER BY name");
+$fields_stmt->execute([$_SESSION['user_id']]);
 $active_fields = $fields_stmt->fetchAll();
 
-// Lấy danh sách các giải đấu
+// Lấy danh sách các giải đấu của owner
 $sql = "
     SELECT e.*, f.name as field_name, u.full_name as organizer_name 
     FROM events e
     JOIN fields f ON e.field_id = f.id
     JOIN users u ON e.organizer_id = u.id
+    WHERE e.organizer_id = ? OR f.owner_id = ?
     ORDER BY e.start_datetime DESC
 ";
-$stmt = $pdo->query($sql);
+$stmt = $pdo->prepare($sql);
+$stmt->execute([$_SESSION['user_id'], $_SESSION['user_id']]);
 $events = $stmt->fetchAll();
 
 $page_title = 'Quản lý Giải đấu & Sự kiện';
@@ -257,31 +255,13 @@ include '../includes/dashboard_header.php';
                                     <?php if ($e['approval_status'] === 'approved'): ?>
                                         <span style="background: #dcfce3; color: #166534; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">Đã duyệt</span>
                                     <?php elseif ($e['approval_status'] === 'rejected'): ?>
-                                        <span style="background: #fee2e2; color: #dc2626; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">Từ chối</span>
+                                        <span style="background: #fee2e2; color: #dc2626; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">Bị từ chối</span>
                                     <?php else: ?>
                                         <span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">Chờ duyệt</span>
                                     <?php endif; ?>
                                 </td>
                                 <td style="padding: 15px 20px; text-align: right;">
                                     <div style="display: flex; gap: 5px; justify-content: flex-end;">
-                                        <!-- Duyệt / Từ chối -->
-                                        <?php if ($e['approval_status'] === 'pending'): ?>
-                                            <form method="POST" style="display: inline-block;">
-                                                <input type="hidden" name="action" value="approve">
-                                                <input type="hidden" name="event_id" value="<?php echo $e['id']; ?>">
-                                                <button type="submit" style="background: #10b981; color: white; border: none; padding: 6px 10px; font-size: 12px; border-radius: 4px; cursor: pointer;">
-                                                    <i data-lucide="check" style="width: 14px; height: 14px;"></i> Duyệt
-                                                </button>
-                                            </form>
-                                            <form method="POST" style="display: inline-block;">
-                                                <input type="hidden" name="action" value="reject">
-                                                <input type="hidden" name="event_id" value="<?php echo $e['id']; ?>">
-                                                <button type="submit" style="background: #ef4444; color: white; border: none; padding: 6px 10px; font-size: 12px; border-radius: 4px; cursor: pointer;">
-                                                    <i data-lucide="x" style="width: 14px; height: 14px;"></i> Hủy
-                                                </button>
-                                            </form>
-                                        <?php endif; ?>
-                                        
                                         <!-- Thay đổi trạng thái -->
                                         <form method="POST" style="display: inline-block;">
                                             <input type="hidden" name="action" value="update_status">
@@ -295,13 +275,15 @@ include '../includes/dashboard_header.php';
                                         </form>
 
                                         <!-- Xóa -->
-                                        <form method="POST" style="display: inline-block;" onsubmit="return confirm('Bạn có chắc chắn muốn XÓA giải đấu này không?');">
+                                        <?php if ($e['approval_status'] !== 'approved'): ?>
+                                        <form method="POST" style="display: inline-block;" onsubmit="return confirm('Bạn có chắc chắn muốn XÓA sự kiện này không?');">
                                             <input type="hidden" name="action" value="delete">
                                             <input type="hidden" name="event_id" value="<?php echo $e['id']; ?>">
                                             <button type="submit" class="btn-logout" style="padding: 6px 10px; font-size: 12px; border-radius: 4px;">
                                                 <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Xóa
                                             </button>
                                         </form>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>

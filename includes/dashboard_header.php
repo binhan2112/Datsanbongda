@@ -260,6 +260,9 @@ $user_role = $_SESSION['user_role'] ?? 'customer';
             <a href="<?php echo $base_url; ?>owner/bookings.php" class="menu-item">
                 <i data-lucide="list"></i> Quản lý Đặt sân
             </a>
+            <a href="<?php echo $base_url; ?>owner/events.php" class="menu-item">
+                <i data-lucide="trophy"></i> Quản lý Sự kiện
+            </a>
             <a href="<?php echo $base_url; ?>owner/unavailable.php" class="menu-item">
                 <i data-lucide="clock-off"></i> Khung giờ bảo trì
             </a>

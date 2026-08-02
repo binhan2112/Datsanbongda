@@ -168,6 +168,7 @@ include '../includes/header.php';
             </p>
 
             <!-- Nút Yêu thích -->
+            <?php if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] === 'customer'): ?>
             <form action="detail.php?id=<?php echo $field_id; ?>" method="POST" style="margin:0;">
                 <input type="hidden" name="toggle_favorite" value="1">
                 <button type="submit" class="btn-favorite <?php echo $is_favorited ? 'favorited' : ''; ?>">
@@ -175,6 +176,7 @@ include '../includes/header.php';
                     <?php echo $is_favorited ? __trans('favorited') : __trans('favorite'); ?>
                 </button>
             </form>
+            <?php endif; ?>
         </div>
 
         <div class="detail-layout">
@@ -242,9 +244,11 @@ include '../includes/header.php';
                 <div class="info-card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h2 style="font-size: 24px; font-weight: 700;"><?php echo __trans('reviews_title'); ?> (<?php echo count($reviews); ?>)</h2>
+                        <?php if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] === 'customer'): ?>
                         <a href="review.php?field_id=<?php echo $field['id']; ?>" class="btn btn-primary btn-sm" style="border-radius: 40px; padding: 8px 16px;">
                             <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i> <?php echo __trans('write_review'); ?>
                         </a>
+                        <?php endif; ?>
                     </div>
                     <?php if (count($reviews) > 0): ?>
                         <div>
@@ -362,22 +366,17 @@ include '../includes/header.php';
                         </div>
                     </div>
                     <!-- Nút đặt sân -->
+                    <?php if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] === 'customer'): ?>
                     <a href="booking.php?field_id=<?php echo $field['id']; ?>" class="btn btn-primary" style="width: 100%; height: 50px; font-size: 16px;">
                         <i data-lucide="calendar-plus"></i>&nbsp;&nbsp;<?php echo __trans('book_now'); ?>
                     </a>
+                    <?php endif; ?>
                     <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color); font-size: 14px; color: var(--text-muted);">
                         <p style="margin-bottom: 6px;"><i data-lucide="user" style="width: 14px; height: 14px; vertical-align: middle;"></i> <?php echo __trans('owner'); ?> <b><?php echo htmlspecialchars($field['owner_name']); ?></b></p>
                         <p style="margin-bottom: 12px;"><i data-lucide="phone" style="width: 14px; height: 14px; vertical-align: middle;"></i> <?php echo __trans('phone'); ?> <?php echo htmlspecialchars($field['owner_phone']); ?></p>
                         
                         <!-- Nút Chat -->
-                        <?php 
-                        $is_field_owner = (is_logged_in() && $_SESSION['user_id'] == $field['owner_id']); 
-                        if ($is_field_owner):
-                        ?>
-                            <a href="../owner/chat.php?field_id=<?php echo $field['id']; ?>" class="btn btn-ghost" style="width: 100%; border-color: var(--primary); color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-                                <i data-lucide="message-square"></i> <?php echo __trans('manage_chat'); ?>
-                            </a>
-                        <?php else: ?>
+                        <?php if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] === 'customer'): ?>
                             <a href="chat.php?field_id=<?php echo $field['id']; ?>" class="btn btn-ghost" style="width: 100%; border-color: var(--primary); color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
                                 <i data-lucide="message-square"></i> <?php echo __trans('chat_owner'); ?>
                             </a>

@@ -3,7 +3,7 @@ return [
     'home' => 'Trang Chủ',
     'fields_list' => 'Danh Sách Sân',
     'offers' => 'Ưu Đãi',
-    'events' => 'Giải Đấu',
+    'events' => 'Sự Kiện',
     'my_bookings' => 'Lịch Đặt',
     'contact' => 'Liên hệ',
     'login' => 'Đăng Nhập',

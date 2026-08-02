@@ -378,7 +378,12 @@ include 'includes/header.php';
                             </div>
 
                             <a href="pages/detail.php?id=<?php echo $field['id']; ?>" class="btn btn-primary btn-sm">
-                                <?php echo __trans('book_now'); ?> <i data-lucide="arrow-right" style="width:14px;height:14px;"></i>
+                                <?php if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] === 'customer'): ?>
+                                    <?php echo __trans('book_now'); ?>
+                                <?php else: ?>
+                                    Xem chi tiết
+                                <?php endif; ?>
+                                <i data-lucide="arrow-right" style="width:14px;height:14px;"></i>
                             </a>
                         </div>
                     </div>

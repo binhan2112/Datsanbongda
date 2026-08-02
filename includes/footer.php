@@ -25,8 +25,10 @@
                 <ul>
                     <?php if (is_logged_in()): ?>
                         <li><a href="<?php echo $base_url; ?>pages/profile.php"><?php echo __trans('profile'); ?></a></li>
-                        <li><a href="<?php echo $base_url; ?>pages/my_bookings.php"><?php echo __trans('my_bookings'); ?></a></li>
-                        <li><a href="<?php echo $base_url; ?>pages/favorites.php"><?php echo __trans('favorites'); ?></a></li>
+                        <?php if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] === 'customer'): ?>
+                            <li><a href="<?php echo $base_url; ?>pages/my_bookings.php"><?php echo __trans('my_bookings'); ?></a></li>
+                            <li><a href="<?php echo $base_url; ?>pages/favorites.php"><?php echo __trans('favorites'); ?></a></li>
+                        <?php endif; ?>
                     <?php else: ?>
                         <li><a href="<?php echo $base_url; ?>auth/login.php"><?php echo __trans('login'); ?></a></li>
                         <li><a href="<?php echo $base_url; ?>auth/register.php"><?php echo __trans('free_register'); ?></a></li>

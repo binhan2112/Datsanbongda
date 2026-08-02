@@ -78,7 +78,7 @@ try {
         FROM events e
         JOIN fields f ON e.field_id = f.id
         JOIN users u ON e.organizer_id = u.id
-        WHERE e.status IN ('upcoming', 'ongoing')
+        WHERE e.status IN ('upcoming', 'ongoing') AND e.approval_status = 'approved'
         ORDER BY e.start_datetime ASC
     ");
     $events = $stmt->fetchAll();
@@ -103,7 +103,7 @@ $event_type_labels = [
 
 $base_url = '../';
 $current_page = 'events';
-$page_title = 'Giải Đấu & Sự Kiện';
+$page_title = 'Sự Kiện';
 include '../includes/header.php';
 ?>
 
@@ -111,13 +111,13 @@ include '../includes/header.php';
     <!-- Page Header -->
     <div style="text-align:center;margin-bottom:48px;">
         <div class="hero-eyebrow" style="display:inline-flex;">
-            <span></span> Sự kiện & Giải đấu bóng đá
+            <span></span> Các sự kiện bóng đá
         </div>
         <h1 style="font-size:clamp(28px,5vw,48px);font-weight:900;letter-spacing:-1.5px;margin-bottom:16px;">
-            Giải Đấu <span class="gradient-text">Bóng Đá Cần Thơ</span>
+            Sự Kiện <span class="gradient-text">Bóng Đá Cần Thơ</span>
         </h1>
         <p style="font-size:17px;color:var(--text-secondary);max-width:560px;margin:0 auto;">
-            Tham gia các giải đấu, giao hữu hấp dẫn tại các sân bóng tốt nhất Cần Thơ. Đăng ký ngay!
+            Tham gia các sự kiện, giao hữu hấp dẫn tại các sân bóng tốt nhất Cần Thơ. Đăng ký ngay!
         </p>
     </div>
 

@@ -52,7 +52,7 @@ if (is_logged_in()) {
 </head>
 <body>
 
-<header>
+<header style="position: relative; z-index: 999; background: var(--bg-layer1); border-bottom: 1px solid var(--border);">
     <div class="container navbar">
         <a href="<?php echo $base_url; ?>index.php" class="logo" id="main-logo" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
             <img src="<?php echo $base_url; ?>assets/images/logo.png" alt="CanThoSport Logo" style="height: 36px; width: auto; border-radius: 4px; object-fit: contain;">
@@ -64,8 +64,10 @@ if (is_logged_in()) {
             <li><a href="<?php echo $base_url; ?>index.php#fields-list" class="<?php echo $current_page === 'fields' ? 'active' : ''; ?>"><?php echo __trans('fields_list'); ?></a></li>
             <li><a href="<?php echo $base_url; ?>pages/offers.php" class="<?php echo $current_page === 'offers' ? 'active' : ''; ?>"><?php echo __trans('offers'); ?></a></li>
             <li><a href="<?php echo $base_url; ?>pages/events.php" class="<?php echo $current_page === 'events' ? 'active' : ''; ?>"><?php echo __trans('events'); ?></a></li>
-            <li><a href="<?php echo $base_url; ?>pages/my_bookings.php" class="<?php echo $current_page === 'bookings' ? 'active' : ''; ?>"><?php echo __trans('my_bookings'); ?></a></li>
-            <?php if (is_logged_in()): ?>
+            <?php if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] === 'customer'): ?>
+                <li><a href="<?php echo $base_url; ?>pages/my_bookings.php" class="<?php echo $current_page === 'bookings' ? 'active' : ''; ?>"><?php echo __trans('my_bookings'); ?></a></li>
+            <?php endif; ?>
+            <?php if (is_logged_in() && (!isset($_SESSION['user_role']) || $_SESSION['user_role'] === 'customer')): ?>
                 <li>
                     <a href="<?php echo $base_url; ?>pages/chat.php" class="<?php echo $current_page === 'chat' ? 'active' : ''; ?>" style="position: relative;">
                         Liên hệ
@@ -137,14 +139,17 @@ if (is_logged_in()) {
                             $profile_link = $base_url . 'owner/profile.php';
                         }
                         ?>
+
+                        <?php if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] === 'customer'): ?>
+                            <a href="<?php echo $base_url; ?>pages/my_bookings.php" class="dropdown-item">
+                                <i data-lucide="calendar"></i> Lịch đặt sân
+                            </a>
+                            <a href="<?php echo $base_url; ?>pages/favorites.php" class="dropdown-item">
+                                <i data-lucide="heart"></i> Sân yêu thích
+                            </a>
+                        <?php endif; ?>
                         <a href="<?php echo $profile_link; ?>" class="dropdown-item">
                             <i data-lucide="user"></i> Hồ sơ cá nhân
-                        </a>
-                        <a href="<?php echo $base_url; ?>pages/my_bookings.php" class="dropdown-item">
-                            <i data-lucide="calendar"></i> Lịch đặt sân
-                        </a>
-                        <a href="<?php echo $base_url; ?>pages/favorites.php" class="dropdown-item">
-                            <i data-lucide="heart"></i> Sân yêu thích
                         </a>
                         <a href="<?php echo $base_url; ?>pages/notifications.php" class="dropdown-item">
                             <i data-lucide="bell"></i> Thông báo

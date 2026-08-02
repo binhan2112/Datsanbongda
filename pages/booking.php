@@ -121,12 +121,41 @@ include '../includes/header.php';
         .slot-grid { grid-template-columns: repeat(3, 1fr); }
         .booking-form-card { padding: 20px; }
     }
+
+    /* Payment Method Cards */
+    .payment-methods { display: flex; gap: 12px; flex-wrap: wrap; }
+    .pm-card {
+        flex: 1; min-width: 140px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: var(--bg-card);
+    }
+    .pm-card:hover { border-color: var(--primary); background: var(--bg-card-hover); }
+    .pm-card input[type="radio"] { display: none; }
+    .pm-card input[type="radio"]:checked + .pm-card-content { font-weight: 700; color: var(--primary); }
+    .pm-card.active { border-color: var(--primary); border-width: 2px; padding: 11px; background: var(--primary-subtle); box-shadow: 0 4px 12px var(--primary-glow); }
 </style>
 
 <div class="booking-cinema">
     <div class="booking-form-card">
-        <h1><?php echo __trans('booking_title'); ?></h1>
-        <p class="subtitle"><?php echo __trans('field_lbl'); ?> <b><?php echo htmlspecialchars($field['name']); ?></b> · <?php echo __trans('active_time'); ?> <?php echo date('H:i', strtotime($field['open_time'])); ?> – <?php echo date('H:i', strtotime($field['close_time'])); ?></p>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--primary-subtle); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                <i data-lucide="calendar-check-2" style="width: 24px; height: 24px;"></i>
+            </div>
+            <div>
+                <h1 style="font-size: 24px; font-weight: 800; margin: 0; line-height: 1.2;"><?php echo __trans('booking_title'); ?></h1>
+                <p class="subtitle" style="margin: 4px 0 0 0; font-size: 14px; color: var(--text-muted);">
+                    <?php echo __trans('field_lbl'); ?> <b style="color: var(--primary);"><?php echo htmlspecialchars($field['name']); ?></b> &bull; <?php echo date('H:i', strtotime($field['open_time'])); ?> – <?php echo date('H:i', strtotime($field['close_time'])); ?>
+                </p>
+            </div>
+        </div>
+        <hr style="border: none; border-top: 1px dashed var(--border); margin: 20px 0;">
 
         <?php if (!empty($error)): ?>
             <div class="alert alert-danger" style="margin-bottom: 20px;">
@@ -137,17 +166,22 @@ include '../includes/header.php';
 
         <!-- Date picker that auto-reloads page to refresh slot status -->
         <form action="booking.php?field_id=<?php echo $field['id']; ?>" method="POST" id="dateForm">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                <div class="form-group">
-                    <label for="booking_date" style="font-weight: 600; margin-bottom: 6px; display: block;"><?php echo __trans('select_date'); ?></label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; background: var(--bg-main); padding: 20px; border-radius: 16px; border: 1px solid var(--border);">
+                <div class="form-group" style="margin: 0;">
+                    <label for="booking_date" style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-secondary);">
+                        <i data-lucide="calendar" style="width: 16px; height: 16px; color: var(--primary);"></i> <?php echo __trans('select_date'); ?>
+                    </label>
                     <input type="date" name="booking_date" id="booking_date" class="form-control" required 
                            min="<?php echo date('Y-m-d'); ?>" 
                            value="<?php echo htmlspecialchars($selected_date); ?>"
-                           onchange="this.form.submit()">
+                           onchange="this.form.submit()"
+                           style="height: 48px; border-radius: 12px; border-color: var(--border); box-shadow: var(--shadow-sm); cursor: pointer; padding: 0 16px;">
                 </div>
-                <div class="form-group">
-                    <label style="font-weight: 600; margin-bottom: 6px; display: block;"><?php echo __trans('selected_date'); ?></label>
-                    <div style="padding: 10px; background: var(--primary-subtle, rgba(0,191,166,0.08)); border-radius: 8px; font-weight: 700; color: var(--primary); text-align: center;">
+                <div class="form-group" style="margin: 0;">
+                    <label style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-secondary);">
+                        <i data-lucide="calendar-heart" style="width: 16px; height: 16px; color: var(--primary);"></i> <?php echo __trans('selected_date'); ?>
+                    </label>
+                    <div style="height: 48px; display: flex; align-items: center; justify-content: center; background: var(--primary-subtle); border: 1px solid rgba(255,0,60,0.15); border-radius: 12px; font-weight: 700; color: var(--primary); font-size: 15px;">
                         <?php 
                         $dayNames = [__trans('sun'), __trans('mon'), __trans('tue'), __trans('wed'), __trans('thu'), __trans('fri'), __trans('sat')];
                         $dayOfWeek = $dayNames[date('w', strtotime($selected_date))];
@@ -162,13 +196,18 @@ include '../includes/header.php';
         <form action="booking.php?field_id=<?php echo $field['id']; ?>" method="POST" id="bookingForm">
             <input type="hidden" name="booking_date" value="<?php echo htmlspecialchars($selected_date); ?>">
             
-            <div style="margin-bottom: 15px;">
-                <label for="duration" style="font-weight: 600; margin-bottom: 6px; display: block;"><?php echo __trans('rent_duration'); ?></label>
-                <select name="duration" id="duration" class="form-control" onchange="recalcSlots()" style="max-width: 200px;">
-                    <?php foreach ([1, 1.5, 2, 2.5, 3] as $d): ?>
-                        <option value="<?php echo $d; ?>" <?php if (isset($_POST['duration']) && $_POST['duration'] == $d) echo 'selected'; ?>><?php echo $d; ?> <?php echo __trans('hours'); ?></option>
-                    <?php endforeach; ?>
-                </select>
+            <div style="margin-bottom: 24px;">
+                <label for="duration" style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-secondary);">
+                    <i data-lucide="clock-4" style="width: 16px; height: 16px; color: var(--primary);"></i> <?php echo __trans('rent_duration'); ?>
+                </label>
+                <div style="position: relative; max-width: 200px;">
+                    <select name="duration" id="duration" class="form-control" onchange="recalcSlots()" style="height: 48px; border-radius: 12px; border-color: var(--border); box-shadow: var(--shadow-sm); padding-left: 16px; appearance: none; -webkit-appearance: none; cursor: pointer;">
+                        <?php foreach ([1, 1.5, 2, 2.5, 3] as $d): ?>
+                            <option value="<?php echo $d; ?>" <?php if (isset($_POST['duration']) && $_POST['duration'] == $d) echo 'selected'; ?>><?php echo $d; ?> <?php echo __trans('hours'); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <i data-lucide="chevron-down" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted); pointer-events: none;"></i>
+                </div>
             </div>
 
             <!-- Cinema screen bar -->
@@ -276,11 +315,21 @@ include '../includes/header.php';
             <!-- Extra Options -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 16px;">
                 <div class="form-group">
-                    <label for="payment_method" style="font-weight: 600; margin-bottom: 6px; display: block;"><?php echo __trans('payment_method'); ?></label>
-                    <select name="payment_method" id="payment_method" class="form-control" required>
-                        <option value="vnpay"><?php echo __trans('pay_vnpay'); ?></option>
-                        <option value="bank"><?php echo __trans('pay_bank'); ?></option>
-                    </select>
+                    <label style="font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-secondary);">
+                        <i data-lucide="wallet" style="width: 16px; height: 16px; color: var(--primary);"></i> <?php echo __trans('payment_method'); ?>
+                    </label>
+                    <div class="payment-methods">
+                        <label class="pm-card active" id="pm-vnpay" onclick="selectPaymentMethod('vnpay')">
+                            <input type="radio" name="payment_method" value="vnpay" checked>
+                            <img src="https://sandbox.vnpayment.vn/apis/assets/images/bank/vnpay_logo.png" alt="VNPay" style="height: 24px; width: auto; object-fit: contain;">
+                            <div class="pm-card-content" style="font-size: 14px;">Thanh toán VNPAY</div>
+                        </label>
+                        <label class="pm-card" id="pm-bank" onclick="selectPaymentMethod('bank')">
+                            <input type="radio" name="payment_method" value="bank">
+                            <i data-lucide="landmark" style="width: 24px; height: 24px; color: var(--text-muted);"></i>
+                            <div class="pm-card-content" style="font-size: 14px; color: var(--text-main);"><?php echo __trans('pay_bank'); ?></div>
+                        </label>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="recurring_weeks" style="font-weight: 600; margin-bottom: 6px; display: block;"><?php echo __trans('recurring_booking'); ?></label>
@@ -304,6 +353,7 @@ include '../includes/header.php';
             <button type="submit" id="btnSubmit" class="btn btn-primary" style="width: 100%; height: 54px; font-size: 16px; font-weight: 700; border-radius: 14px;" disabled>
                 <i data-lucide="mouse-pointer-click"></i>&nbsp;&nbsp;<?php echo __trans('pls_select_slot'); ?>
             </button>
+            <?php endif; ?>
         </form>
     </div>
 </div>
@@ -399,6 +449,12 @@ include '../includes/header.php';
             btn.style.opacity = '1';
         }
         lucide.createIcons();
+    }
+
+    function selectPaymentMethod(method) {
+        document.getElementById('pm-vnpay').classList.remove('active');
+        document.getElementById('pm-bank').classList.remove('active');
+        document.getElementById('pm-' + method).classList.add('active');
     }
 
     document.getElementById('bookingForm').addEventListener('submit', function(e) {
